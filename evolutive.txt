@@ -1,0 +1,4 @@
+- Creare strato di Service
+- Sostituire @Autowired con dipendency injection tramite costruttore
+- Aggiungere OpenAPI-docs (swagger)
+- Verificare le risposte del controller e, in caso sostituirle con i giusti codici HTTP
