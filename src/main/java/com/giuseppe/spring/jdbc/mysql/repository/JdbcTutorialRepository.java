@@ -1,11 +1,14 @@
 package com.giuseppe.spring.jdbc.mysql.repository;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
 import com.giuseppe.spring.jdbc.mysql.model.Tutorial;
@@ -58,13 +61,57 @@ public class JdbcTutorialRepository implements TutorialRepository {
 
   @Override
   public List<Tutorial> findByTitleContaining(String title) {
-    String q = "SELECT * from tutorials WHERE title LIKE '%" + title + "%'";
-
-    return jdbcTemplate.query(q, BeanPropertyRowMapper.newInstance(Tutorial.class));
+//    String q = "SELECT * from tutorials WHERE title LIKE '%" + title + "%'";
+//
+//    return jdbcTemplate.query(q, BeanPropertyRowMapper.newInstance(Tutorial.class));
+    // correzione della vulnerabilità SQL injection tramite query con parametri
+    return jdbcTemplate.query("SELECT * from tutorials WHERE title LIKE ?",
+            BeanPropertyRowMapper.newInstance(Tutorial.class), "%" + title + "%");
   }
 
   @Override
   public int deleteAll() {
     return jdbcTemplate.update("DELETE from tutorials");
+  }
+
+  // metodi con supporto per orderBy e limit
+  @Override
+  public List<Tutorial> findAll(String sort, String direction, int offset, int limit) {
+    // validare i parametri per sicurezza
+    sort = validateSortField(sort);
+    direction = validateDirection(direction);
+
+    String sql = "SELECT * FROM tutorials ORDER BY " + sort + " " + direction + " LIMIT ? OFFSET ?";
+    return jdbcTemplate.query(sql, BeanPropertyRowMapper.newInstance(Tutorial.class), limit, offset);
+  }
+
+  @Override
+  public List<Tutorial> findByPublished(boolean published, String sort, String direction, int offset, int limit) {
+    // Validare i parametri per sicurezza
+    sort = validateSortField(sort);
+    direction = validateDirection(direction);
+
+    String sql = "SELECT * FROM tutorials WHERE published=? ORDER BY " + sort + " " + direction + " LIMIT ? OFFSET ?";
+    return jdbcTemplate.query(sql, BeanPropertyRowMapper.newInstance(Tutorial.class), published, limit, offset);
+  }
+
+  @Override
+  public List<Tutorial> findByTitleContaining(String title, String sort, String direction, int offset, int limit) {
+    // validare i parametri per sicurezza
+    sort = validateSortField(sort);
+    direction = validateDirection(direction);
+
+    String sql = "SELECT * FROM tutorials WHERE title LIKE ? ORDER BY " + sort + " " + direction + " LIMIT ? OFFSET ?";
+    return jdbcTemplate.query(sql, BeanPropertyRowMapper.newInstance(Tutorial.class), "%" + title + "%", limit, offset);
+  }
+
+  // metodi di utilità per la validazione
+  private String validateSortField(String sort) {
+    List<String> validFields = List.of("id", "title", "description", "published");
+    return validFields.contains(sort.toLowerCase()) ? sort : "id";
+  }
+
+  private String validateDirection(String direction) {
+    return "desc".equalsIgnoreCase(direction) ? "DESC" : "ASC";
   }
 }

@@ -20,4 +20,11 @@ public interface TutorialRepository {
   List<Tutorial> findByTitleContaining(String title);
 
   int deleteAll();
+
+  // metodi con supporto per orderBy e limit
+  List<Tutorial> findAll(String sort, String direction, int offset, int limit);
+
+  List<Tutorial> findByPublished(boolean published, String sort, String direction, int offset, int limit);
+
+  List<Tutorial> findByTitleContaining(String title, String sort, String direction, int offset, int limit);
 }
