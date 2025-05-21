@@ -20,6 +20,9 @@ public class TutorialService {
 //    private TutorialRepository repository;
 
     // delegazione ai metodi del repository
+    // non ho definito TutorialService come un interfaccia (API)
+    // in modo di implementare TutorialServiceImpl separatamente
+    // per poi aggiornare TutorialController per iniettare l'interfaccia
     public int save(Tutorial tutorial) {
         return repository.save(tutorial);
     }
